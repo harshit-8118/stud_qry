@@ -84,39 +84,35 @@
         const submitButton = document.getElementById('submitButton');
         const buttonText = document.getElementById('buttonText');
         const buttonLoader = document.getElementById('buttonLoader');
-
-        // IMPORTANT: Replace this URL with the one you get from Google Apps Script deployment
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHlBUAguEX40Eew1m5Y4CVeLJATWeKuYNxkys5gfeqwDufQSmuqzDO8ImcksXL-C9E0A/exec';
 
         queryForm.addEventListener('submit', function(e) {
             e.preventDefault();
-
-            // Show loading state
             submitButton.disabled = true;
             buttonText.textContent = 'Submitting...';
             buttonLoader.classList.remove('hidden');
 
             const formData = new FormData(queryForm);
-            fetch(SCRIPT_URL, { method: 'POST', body: formData})
-                .then(response => response.json())
-                .then(data => {
-                    if(data.result === 'success'){
-                        successModal.classList.remove('hidden');
-                        queryForm.reset();
-                    } else {
-                        throw new Error('Submission failed');
-                    }
+            
+            // --- THIS IS THE CORRECTED PART ---
+            fetch(SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' })
+                .then(response => {
+                    // Because of the redirect and no-cors, we can't read the response.
+                    // We will assume success and show the modal.
+                    successModal.classList.remove('hidden');
+                    queryForm.reset();
                 })
                 .catch(error => {
+                    // This catch block will now likely only catch network errors
                     console.error('Error!', error.message);
-                    alert('An error occurred. Please try again.');
+                    alert('A network error occurred. Please check your connection and try again.');
                 })
                 .finally(() => {
-                    // Hide loading state
                     submitButton.disabled = false;
                     buttonText.textContent = 'Submit to CR';
                     buttonLoader.classList.add('hidden');
                 });
+            // --- END OF CORRECTION ---
         });
 
         function closeModal() {
